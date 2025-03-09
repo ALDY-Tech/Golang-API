@@ -1,33 +1,47 @@
 package config
 
 import (
-	"database/sql"
 	"fmt"
+	"os"
 
-	_ "github.com/lib/pq"
+	"github.com/joho/godotenv"
+	"log"
 )
 
-const (
-	host     = "localhost"
-	port     = 5432
-	user     = "postgres"
-	password = "1234"
-	dbName   = "enigma_laundry_GolangAPI"
-)
+type ApiConfig struct {
+	Url string
+}
 
-func ConnectDB() *sql.DB {
-	psqLInfo := fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable", host, port, user, password, dbName)
+type DbConfig struct {
+	DataSourceName string
+}
 
-	db, err := sql.Open("postgres", psqLInfo)
-	if err != nil {
-		panic(err)
-	}
+type Config struct {
+	ApiConfig
+	DbConfig
+}
 
-	err = db.Ping()
-	if err != nil {
-		panic(err)
-	}
-	fmt.Println("Connected to database")
+func init() {
+    if err := godotenv.Load(); err != nil {
+        log.Fatal("Error loading .env file")
+    }
+}
 
-	return db
+func (c *Config) readConfig() {
+	api := os.Getenv("API_URL")
+	dbHost := os.Getenv("DB_HOST")
+	dbName := os.Getenv("DB_NAME")
+	dbPort := os.Getenv("DB_PORT")
+	dbUser := os.Getenv("DB_USER")
+	dbPassword := os.Getenv("DB_PASSWORD")
+
+	dsn := fmt.Sprintf("host=%s user=%s password=%s dbname=%s port=%s sslmode=disable", dbHost, dbUser, dbPassword, dbName, dbPort)
+	c.ApiConfig = ApiConfig{Url: api}
+	c.DbConfig = DbConfig{DataSourceName: dsn}
+}
+
+func NewConfig() Config {
+	conf := Config{}
+	conf.readConfig()
+	return conf
 }
