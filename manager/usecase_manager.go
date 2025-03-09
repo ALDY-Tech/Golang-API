@@ -1,0 +1,19 @@
+package manager
+
+import "submission-project-enigma-laundry/usecase"
+
+type UseCaseManager interface {
+	CustomerUseCase() usecase.CustomerUseCase
+}
+
+type useCaseManager struct {
+	repo RepositoryManager
+}
+
+func (u *useCaseManager) CustomerUseCase() usecase.CustomerUseCase {
+	return usecase.NewCustomerUseCase(u.repo.CustomerRepository())
+}
+
+func NewUseCaseManager(repo RepositoryManager) UseCaseManager {
+	return &useCaseManager{repo: repo}
+}

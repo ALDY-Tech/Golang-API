@@ -5,9 +5,9 @@ type Transaction struct {
 	BillDate   string       `json:"billDate"`
 	EntryDate  string       `json:"entryDate"`
 	FinishDate string       `json:"finishDate"`
-	Employee   Employee     `json:"employee"`
-	Customer   Customers     `json:"customer"`
-	BillDetails []BillDetail `json:"billDetails"`
+	Employee   People     `json:"employee"`
+	Customer   People     `json:"customer"`
+	BillDetails []BillDetailCreate `json:"billDetails"`
 	TotalBill  int          `json:"totalBill"`
 }
 

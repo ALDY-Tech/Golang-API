@@ -10,7 +10,7 @@ type CustomerUseCase interface {
 	CreateNewCustomer(customer *model.People) error
 	GetAllCustomer(page int, totalRows int) ([]model.People, error)
 	GetCustomerById(id string) (model.People, error)
-	UpdateCustomer(customer *model.People) error
+	UpdateCustomer(customer model.People) error
 	DeleteCustomer(id string) error
 }
 
@@ -18,8 +18,8 @@ type customerUseCase struct {
 	repo repository.CustomerRepository
 }
 
-func (c *customerUseCase) CreateNewCustomer(customer *model.People) error {
-	newCustomer.id = utils.GenerateUUID()
+func (c *customerUseCase) CreateNewCustomer(newCustomer *model.People) error {
+	newCustomer.Id = utils.GenerateID()
 	return c.repo.Insert(newCustomer)
 }
 
@@ -31,8 +31,8 @@ func (c *customerUseCase) GetCustomerById(id string) (model.People, error) {
 	return c.repo.FindById(id)
 }
 
-func (c *customerUseCase) UpdateCustomer(customer *model.People) error {
-	return c.repo.Update(customer)
+func (c *customerUseCase) UpdateCustomer(customer model.People) error {
+	return c.repo.Update(&customer)
 }
 
 func (c *customerUseCase) DeleteCustomer(id string) error {

@@ -18,7 +18,7 @@ func Server() *appServer {
 	ginEngine := gin.Default()
 	config := config.NewConfig()
 	infra := manager.NewInfraManager(config)
-	repo := manager.NewRepositoryManager(infra)
+	repo := manager.NewRepoManager(infra)
 	usecase := manager.NewUseCaseManager(repo)
 	return &appServer{
 		useCaseManager: usecase,
@@ -28,7 +28,7 @@ func Server() *appServer {
 }
 
 func (a *appServer) initHandlers() {
-	controller.NewProductController(a.engine, a.useCaseManager.ProductUseCase())
+	controller.NewCustomerController(a.engine, a.useCaseManager.CustomerUseCase())
 }
 
 func (a *appServer) Run() {
