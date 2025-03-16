@@ -32,4 +32,9 @@ var (
 		Update:     `UPDATE products SET name = :name, price = :price, unit = :unit WHERE id = :id;`,
 		Delete:     `DELETE FROM products WHERE id = $1;`,
 	}
+
+	TransactionQueries = Queries{
+		Insert: `INSERT INTO transactions (id, customer_id, employee_id, transaction_date, total_price) VALUES (:id, :customer_id, :employee_id, :transaction_date, :total_price);`,
+		SelectByID: `SELECT id, customer_id, employee_id, transaction_date, total_price FROM transactions WHERE id = $1;`,
+		SelectAll: `SELECT id, customer_id, employee_id, transaction_date, total_price FROM transactions LIMIT $1 OFFSET $2;`,
 )
