@@ -8,11 +8,10 @@ import (
 
 type ProductUseCase interface {
 	CreateNewProduct(newProduct *model.Product) error
-	FindAll(page int, totalRows int) ([]model.Product, error)
-	FindById(id string) (model.Product, error)
+	GetAllProduct(searchName string, page int, totalRows int) ([]model.Product, error)
+	GetProductById(id string) (model.Product, error)
 	UpdateProduct(product *model.Product) error
 	DeleteProduct(id string) error
-	SearchProduct(searchName string) ([]model.Product, error)
 }
 
 type productUseCase struct {
@@ -24,11 +23,11 @@ func (p *productUseCase) CreateNewProduct(newProduct *model.Product) error {
 	return p.productRepository.Insert(newProduct)
 }
 
-func (p *productUseCase) FindAll(page int, totalRows int) ([]model.Product, error) {
-	return p.productRepository.FindAll(page, totalRows)
+func (p *productUseCase) GetAllProduct( searchName string, page int, totalRows int) ([]model.Product, error) {
+	return p.productRepository.FindAll(searchName,page, totalRows)
 }
 
-func (p *productUseCase) FindById(id string) (model.Product, error) {
+func (p *productUseCase) GetProductById(id string) (model.Product, error) {
 	return p.productRepository.FindById(id)
 }
 
@@ -38,10 +37,6 @@ func (p *productUseCase) UpdateProduct(product *model.Product) error {
 
 func (p *productUseCase) DeleteProduct(id string) error {
 	return p.productRepository.Delete(id)
-}
-
-func (p *productUseCase) SearchProduct(searchName string) ([]model.Product, error) {
-	return p.productRepository.Search(searchName)
 }
 
 func NewProductUseCase(productRepository repository.ProductRepository) ProductUseCase {

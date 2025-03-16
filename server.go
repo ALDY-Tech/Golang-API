@@ -30,6 +30,7 @@ func Server() *appServer {
 func (a *appServer) initHandlers() {
 	controller.NewCustomerController(a.engine, a.useCaseManager.CustomerUseCase())
 	controller.NewEmployeeController(a.engine, a.useCaseManager.EmployeeUseCase())
+	controller.NewProductController(a.engine, a.useCaseManager.ProductUsecase())
 }
 
 func (a *appServer) Run() {
