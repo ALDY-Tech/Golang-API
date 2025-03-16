@@ -23,12 +23,13 @@ func Server() *appServer {
 	return &appServer{
 		useCaseManager: usecase,
 		engine:         ginEngine,
-		host:           ":8080",
+		host:           "localhost:8080",
 	}
 }
 
 func (a *appServer) initHandlers() {
 	controller.NewCustomerController(a.engine, a.useCaseManager.CustomerUseCase())
+	controller.NewEmployeeController(a.engine, a.useCaseManager.EmployeeUseCase())
 }
 
 func (a *appServer) Run() {

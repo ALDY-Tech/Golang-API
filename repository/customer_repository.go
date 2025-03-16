@@ -20,11 +20,11 @@ type customerRepository struct {
 }
 
 func (c *customerRepository) Insert(customer *model.People) error {
-	_, err := c.db.NamedExec(utils.INSERT_CUSTOMER, customer)
-	if err != nil {
-		return err
-	}
-	return nil
+    _, err := c.db.NamedExec(utils.CustomerQueries.Insert, customer)
+    if err != nil {
+        return err
+    } 
+    return nil
 }
 
 func (c *customerRepository) FindAll(page int, totalRows int) ([]model.People, error) {
@@ -32,7 +32,7 @@ func (c *customerRepository) FindAll(page int, totalRows int) ([]model.People, e
 	offset := (page - 1) * limit
 	var customers []model.People
 
-	err := c.db.Select(&customers, utils.SELECT_ALL_CUSTOMER, limit, offset)
+	err := c.db.Select(&customers, utils.CustomerQueries.SelectAll, limit, offset)
 	if err != nil {
 		return nil, err
 	}
@@ -41,7 +41,7 @@ func (c *customerRepository) FindAll(page int, totalRows int) ([]model.People, e
 
 func (c *customerRepository) FindById(id string) (model.People, error) {
 	var customer model.People
-	err := c.db.Get(&customer, utils.SELECT_CUSTOMER_BY_ID, id)
+	err := c.db.Get(&customer, utils.CustomerQueries.SelectByID, id)
 	if err != nil {
 		return model.People{}, err
 	}
@@ -49,7 +49,7 @@ func (c *customerRepository) FindById(id string) (model.People, error) {
 }
 
 func (c *customerRepository) Update(customer *model.People) error {
-	_, err := c.db.NamedExec(utils.UPDATE_CUSTOMER, customer)
+	_, err := c.db.NamedExec(utils.CustomerQueries.Update, customer)
 	if err != nil {
 		return err
 	}
@@ -57,7 +57,7 @@ func (c *customerRepository) Update(customer *model.People) error {
 }
 
 func (c *customerRepository) Delete(id string) error {
-	_, err := c.db.Exec(utils.DELETE_CUSTOMER, id)
+	_, err := c.db.Exec(utils.CustomerQueries.Delete, id)
 	if err != nil {
 		return err
 	}
