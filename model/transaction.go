@@ -1,20 +1,40 @@
 package model
 
 type Transaction struct {
-	ID         string       `json:"id"`
-	BillDate   string       `json:"billDate"`
-	EntryDate  string       `json:"entryDate"`
-	FinishDate string       `json:"finishDate"`
-	EmployeeID string       `json:"employeeId"`
-	CustomerID string       `json:"customerId"`
+	ID         string       `db:"id" json:"id"`
+	BillDate   string       `db:"bill_date" json:"billDate"`
+	EntryDate  string       `db:"entry_date" json:"entryDate"`
+	FinishDate string       `db:"finish_date" json:"finishDate"`
+	EmployeeID string       `db:"employee_id" json:"employeeId"`
+	CustomerID string       `db:"customer_id" json:"customerId"`
 	BillDetails []BillDetail `json:"billDetails"`
-	TotalBill  int          `json:"totalBill"`
+	TotalBill  int          `db:"total_bill" json:"totalBill"`
+}
+
+type TransactionDetail struct {
+	ID         string       `db:"id" json:"id"`
+	BillDate   string       `db:"bill_date" json:"billDate"`
+	EntryDate  string       `db:"entry_date" json:"entryDate"`
+	FinishDate string       `db:"finish_date" json:"finishDate"`
+	Employee People       `json:"employee"`
+	Customer People       `json:"customer"`
+	BillDetails []BillDetail `json:"billDetails"`
+	TotalBill  int          `db:"total_bill" json:"totalBill"`
 }
 
 type BillDetail struct {
-	ID           string `json:"id"`
-	BillID       string `json:"billId"`
-	ProductID    string `json:"productId"`
-	ProductPrice int    `json:"productPrice"`
-	Qty          int    `json:"qty"`
+	ID           string `db:"id" json:"id"`
+	BillID       string `db:"bill_id" json:"billId"`
+	ProductID    string `db:"product_id" json:"productId"`
+	ProductPrice int    `db:"product_price" json:"productPrice"`
+	Qty          int    `db:"qty" json:"qty"`
 }
+
+type Bill struct {
+	ID         string `db:"id" json:"id"`
+	BillID	 string `db:"bill_id" json:"billId"`
+	Product Product `json:"product"`
+	ProductPrice int `db:"product_price" json:"productPrice"`
+	Qty 	 int    `db:"qty" json:"qty"`
+}
+

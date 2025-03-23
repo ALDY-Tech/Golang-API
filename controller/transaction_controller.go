@@ -37,6 +37,20 @@ func (tc *TransactionController) CreateTransaction(ctx *gin.Context) {
 		"data":    transaction,
 	})
 }
+
+func (tc *TransactionController) FindTransactionById(ctx *gin.Context) {
+	id := ctx.Param("id")
+	transaction, err := tc.transactionUseCase.findById(id)
+	if err != nil {
+		ctx.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found", "details": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Success",
+		"data":    transaction,
+	})
+	}
 func NewTransactionController(router *gin.Engine, transactionUseCase usecase.TransactionUseCase) *TransactionController {
 	newTransactionController := TransactionController{
 		router:           router,
