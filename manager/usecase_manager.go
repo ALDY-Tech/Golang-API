@@ -6,6 +6,7 @@ type UseCaseManager interface {
     CustomerUseCase() usecase.CustomerUseCase
     EmployeeUseCase() usecase.EmployeeUseCase
 	ProductUsecase() usecase.ProductUseCase
+    TransactionUsecase() usecase.TransactionUseCase
 }
 
 type useCaseManager struct {
@@ -22,6 +23,10 @@ func (u *useCaseManager) EmployeeUseCase() usecase.EmployeeUseCase {
 
 func (u *useCaseManager) ProductUsecase() usecase.ProductUseCase {
 	return usecase.NewProductUseCase(u.repo.ProductRepository())
+}
+
+func (u *useCaseManager) TransactionUsecase() usecase.TransactionUseCase {
+    return usecase.NewTransactionUsecase(u.repo.TransactionRepository())
 }
 
 func NewUseCaseManager(repo RepositoryManager) UseCaseManager {
