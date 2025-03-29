@@ -8,8 +8,8 @@ import (
 
 type TransactionUseCase interface {
 	Insert(transaction *model.Transaction) error
-	findById(id string) (*model.Transaction, error)
-	// FindAll(page int, totalRows int) ([]model.Transaction, error)
+	FindById(id string) (model.TransactionDetail, error)
+	FindAll(startDate string, endDate string, productName string) ([]model.TransactionDetail, error)
 }
 
 type transactionUsecase struct {
@@ -22,8 +22,12 @@ func (uc *transactionUsecase) Insert(transaction *model.Transaction) error {
 	return uc.transactionRepo.Insert(transaction)
 }
 
-func (uc *transactionUsecase) findById(id string) (*model.Transaction, error) {
+func (uc *transactionUsecase) FindById(id string) (model.TransactionDetail, error) {
 	return uc.transactionRepo.FindById(id)
+}
+
+func (uc *transactionUsecase) FindAll(startDate string, endDate string, productName string) ([]model.TransactionDetail, error) {
+	return uc.transactionRepo.FindAll(startDate, endDate, productName)
 }
 
 func NewTransactionUsecase(transactionRepo repository.TransactionRepository) TransactionUseCase {

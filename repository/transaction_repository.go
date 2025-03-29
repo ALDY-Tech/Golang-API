@@ -10,8 +10,8 @@ import (
 
 type TransactionRepository interface {
 	Insert(transaction *model.Transaction) error
-	// FindAll(page int, totalRows int) ([]model.Transaction, error)
-	FindById(id string) (*model.Transaction, error)
+	FindAll(startDate string, endDate string, productName string) ([]model.TransactionDetail, error)
+	FindById(id string) (model.TransactionDetail, error)
 }
 
 type transactionRepository struct {
@@ -90,14 +90,14 @@ func (t *transactionRepository) Insert(transaction *model.Transaction) error {
 	return nil
 }
 
-func (t *transactionRepository) FindById(id string) (*model.Transaction, error) {
+func (t *transactionRepository) FindById(id string) (model.TransactionDetail, error) {
 	var transaction model.TransactionDetail
 	query := `
 	SELECT t.id, t.bill_date, t.entry_date, t.finish_date, t.total_bill,
-		   e.id AS employee_id, e.name AS employee_name, e.phone_number AS employee_phone, e.address AS employee_address,
-		   c.id AS customer_id, c.name AS customer_name, c.phone_number AS customer_phone, c.address AS customer_address,
-		   bd.id AS bill_detail_id, bd.bill_id, 
-		   p.id AS product_id, p.name AS product_name, p.price AS product_price, p.unit AS product_unit, 
+		   e.id, e.name, e.phonenumber, e.address,
+		   c.id, c.name, c.phonenumber, c.address,
+		   bd.id, bd.bill_id, 
+		   p.id, p.name, p.price, p.unit, 
 		   bd.product_price, bd.qty
 	FROM transactions t
 	JOIN employees e ON t.employee_id = e.id
@@ -108,16 +108,17 @@ func (t *transactionRepository) FindById(id string) (*model.Transaction, error) 
 	`
 	rows, err := t.db.Query(query, id)
 	if err != nil {
-		return nil, err
+		return transaction, err
 	}
 	defer rows.Close()
 
-	var billDetails []model.BillDetail
+	var billDetails []model.Bill
 	for rows.Next() {
 		var billDetail model.Bill
 		var product model.Product
 
-		err := rows.Scan( &transaction.ID, &transaction.BillDate, &transaction.EntryDate, &transaction.FinishDate, &transaction.TotalBill,
+		err := rows.Scan(
+			&transaction.ID, &transaction.BillDate, &transaction.EntryDate, &transaction.FinishDate, &transaction.TotalBill,
 			&transaction.Employee.Id, &transaction.Employee.Name, &transaction.Employee.PhoneNumber, &transaction.Employee.Address,
 			&transaction.Customer.Id, &transaction.Customer.Name, &transaction.Customer.PhoneNumber, &transaction.Customer.Address,
 			&billDetail.ID, &billDetail.BillID,
@@ -125,7 +126,7 @@ func (t *transactionRepository) FindById(id string) (*model.Transaction, error) 
 			&billDetail.ProductPrice, &billDetail.Qty,
 		)
 		if err != nil {
-			return nil, err
+			return transaction, err
 		}
 		billDetail.Product = product
 		billDetails = append(billDetails, billDetail)
@@ -133,10 +134,99 @@ func (t *transactionRepository) FindById(id string) (*model.Transaction, error) 
 	transaction.BillDetails = billDetails
 
 	if err := rows.Err(); err != nil {
-		return nil, err
+		return transaction, err
 	}
 
-	return &transaction, nil
+	return transaction, nil
+}
+
+func (t *transactionRepository) FindAll(startDate string, endDate string, productName string) ([]model.TransactionDetail, error) {
+	var transactions []model.TransactionDetail
+
+	query := `
+		SELECT t.id, t.bill_date, t.entry_date, t.finish_date, t.employee_id, t.customer_id,t.total_bill
+		FROM transactions t
+		LEFT JOIN bill_details bd ON t.id = bd.bill_id
+		LEFT JOIN products p ON bd.product_id = p.id
+		WHERE 1=1`
+
+	var params []interface{}
+
+	if startDate != "" {
+		query += " AND t.bill_date >= $1"
+		params = append(params, startDate)
+	}
+
+	if endDate != "" {
+		query += " AND t.bill_date <= $2"
+		params = append(params, endDate)
+	}
+
+	if productName != "" {
+		query += " AND p.name ILIKE '%' || $3 || '%'"
+		params = append(params, productName)
+	}
+
+	rows, err := t.db.Query(query, params...)
+	if err != nil {
+		return transactions, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var transaction model.TransactionDetail
+		err := rows.Scan(&transaction.ID, &transaction.BillDate, &transaction.EntryDate, &transaction.FinishDate, &transaction.Employee.Id, &transaction.Customer.Id, &transaction.TotalBill)
+		if err != nil {
+			return transactions, err
+		}
+		err = t.db.QueryRow(`
+			SELECT id, name, phonenumber, address
+			FROM employees WHERE id = $1`, transaction.Employee.Id).Scan(
+			&transaction.Employee.Id,
+			&transaction.Employee.Name,
+			&transaction.Employee.PhoneNumber,
+			&transaction.Employee.Address,
+		)
+		if err != nil {
+			return transactions, err
+		}
+		err = t.db.QueryRow(`
+			SELECT id, name, phonenumber, address
+			FROM customers WHERE id = $1`, transaction.Customer.Id).Scan(
+			&transaction.Customer.Id,
+			&transaction.Customer.Name,
+			&transaction.Customer.PhoneNumber,
+			&transaction.Customer.Address,
+		)
+		if err != nil {
+			return transactions, err
+		}
+
+		detailsRows, err := t.db.Query(`
+			SELECT bd.id, bd.bill_id, p.id, p.name, p.price, p.unit, bd.product_price, bd.qty
+			FROM bill_details bd
+			JOIN products p ON bd.product_id = p.id
+			WHERE bd.bill_id = $1`, transaction.ID)
+		if err != nil {
+			return transactions, err
+		}
+		defer detailsRows.Close()
+
+		for detailsRows.Next() {
+			var billDetail model.Bill
+			var product model.Product
+
+			err := detailsRows.Scan(&billDetail.ID, &billDetail.BillID, &product.Id, &product.Name, &product.Price, &product.Unit, &billDetail.ProductPrice, &billDetail.Qty)
+			if err != nil {
+				return transactions, err
+			}
+			billDetail.Product = product
+			transaction.BillDetails = append(transaction.BillDetails, billDetail)
+		}
+		transactions = append(transactions, transaction)
+
+	}
+	return transactions, nil
 }
 
 func NewTransactionRepository(db *sqlx.DB) TransactionRepository {

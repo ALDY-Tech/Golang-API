@@ -40,7 +40,7 @@ func (tc *TransactionController) CreateTransaction(ctx *gin.Context) {
 
 func (tc *TransactionController) FindTransactionById(ctx *gin.Context) {
 	id := ctx.Param("id")
-	transaction, err := tc.transactionUseCase.findById(id)
+	transaction, err := tc.transactionUseCase.FindById(id)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, gin.H{"error": "Transaction not found", "details": err.Error()})
 		return
@@ -49,6 +49,23 @@ func (tc *TransactionController) FindTransactionById(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{
 		"message": "Success",
 		"data":    transaction,
+	})
+}
+
+func (tc *TransactionController) FindAllTransactions(ctx *gin.Context) {
+	startDate := ctx.Query("startDate")
+	endDate := ctx.Query("endDate")
+	productName := ctx.Query("productName")
+
+	transactions, err := tc.transactionUseCase.FindAll(startDate, endDate, productName)
+	if err != nil {
+		ctx.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to retrieve transactions", "details": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{
+		"message": "Success",
+		"data":    transactions,
 	})
 	}
 func NewTransactionController(router *gin.Engine, transactionUseCase usecase.TransactionUseCase) *TransactionController {
@@ -59,6 +76,8 @@ func NewTransactionController(router *gin.Engine, transactionUseCase usecase.Tra
 
 	transaction := router.Group("/transactions")
 	transaction.POST("/", newTransactionController.CreateTransaction)
+	transaction.GET("/:id", newTransactionController.FindTransactionById)
+	transaction.GET("/", newTransactionController.FindAllTransactions)
 
 	return &newTransactionController
 }
